@@ -1,0 +1,315 @@
+#pragma version 8
+intcblock 0 1 43
+bytecblock 0x 0x7461736b5f6964 0x00
+txn NumAppArgs
+intc_0 // 0
+==
+bnz main_l10
+txna ApplicationArgs 0
+pushbytes 0x4acdccb4 // "create_todo(pay,string)void"
+==
+bnz main_l9
+txna ApplicationArgs 0
+pushbytes 0xc99acc50 // "update_todo(uint64,string)void"
+==
+bnz main_l8
+txna ApplicationArgs 0
+pushbytes 0xb8a740d9 // "delete_todo(uint64)void"
+==
+bnz main_l7
+txna ApplicationArgs 0
+pushbytes 0xba8149fe // "get_task(uint64)(address,string,bool,uint64)"
+==
+bnz main_l6
+err
+main_l6:
+txn OnCompletion
+intc_0 // NoOp
+==
+txn ApplicationID
+intc_0 // 0
+!=
+&&
+assert
+txna ApplicationArgs 1
+btoi
+callsub gettask_3
+store 4
+pushbytes 0x151f7c75 // 0x151f7c75
+load 4
+concat
+log
+intc_1 // 1
+return
+main_l7:
+txn OnCompletion
+intc_0 // NoOp
+==
+txn ApplicationID
+intc_0 // 0
+!=
+&&
+assert
+txna ApplicationArgs 1
+btoi
+callsub deletetodo_2
+intc_1 // 1
+return
+main_l8:
+txn OnCompletion
+intc_0 // NoOp
+==
+txn ApplicationID
+intc_0 // 0
+!=
+&&
+assert
+txna ApplicationArgs 1
+btoi
+store 2
+txna ApplicationArgs 2
+store 3
+load 2
+load 3
+callsub updatetodo_1
+intc_1 // 1
+return
+main_l9:
+txn OnCompletion
+intc_0 // NoOp
+==
+txn ApplicationID
+intc_0 // 0
+!=
+&&
+assert
+txna ApplicationArgs 1
+store 1
+txn GroupIndex
+intc_1 // 1
+-
+store 0
+load 0
+gtxns TypeEnum
+intc_1 // pay
+==
+assert
+load 0
+load 1
+callsub createtodo_0
+intc_1 // 1
+return
+main_l10:
+txn OnCompletion
+intc_0 // NoOp
+==
+bnz main_l12
+err
+main_l12:
+txn ApplicationID
+intc_0 // 0
+==
+assert
+intc_1 // 1
+return
+
+// create_todo
+createtodo_0:
+proto 2 0
+bytec_0 // ""
+dup
+intc_0 // 0
+dup
+bytec_0 // ""
+intc_0 // 0
+dup
+bytec_0 // ""
+dup
+frame_dig -2
+gtxns Amount
+pushint 2000 // 2000
+>=
+assert
+frame_dig -2
+gtxns Receiver
+global CurrentApplicationAddress
+==
+assert
+frame_dig -2
+gtxns Sender
+txn Sender
+==
+assert
+frame_dig -1
+extract 2 0
+bytec_0 // ""
+!=
+assert
+txn Sender
+frame_bury 0
+frame_dig 0
+len
+pushint 32 // 32
+==
+assert
+frame_dig -1
+extract 2 0
+frame_bury 1
+frame_dig 1
+len
+itob
+extract 6 0
+frame_dig 1
+concat
+frame_bury 1
+intc_0 // 0
+!
+!
+frame_bury 2
+global LatestTimestamp
+frame_bury 3
+frame_dig 0
+frame_dig 1
+frame_bury 8
+frame_dig 8
+frame_bury 7
+intc_2 // 43
+frame_bury 5
+frame_dig 5
+itob
+extract 6 0
+concat
+bytec_2 // 0x00
+intc_0 // 0
+frame_dig 2
+setbit
+concat
+frame_dig 3
+itob
+concat
+frame_dig 7
+concat
+frame_bury 4
+bytec_1 // "task_id"
+app_global_get
+itob
+box_del
+pop
+bytec_1 // "task_id"
+app_global_get
+itob
+frame_dig 4
+box_put
+bytec_1 // "task_id"
+bytec_1 // "task_id"
+app_global_get
+intc_1 // 1
++
+app_global_put
+retsub
+
+// update_todo
+updatetodo_1:
+proto 2 0
+bytec_0 // ""
+dupn 2
+intc_0 // 0
+dupn 3
+bytec_0 // ""
+dup
+frame_dig -2
+itob
+box_get
+store 6
+store 5
+load 6
+assert
+load 5
+frame_bury 0
+frame_dig 0
+extract 0 32
+frame_bury 1
+txn Sender
+frame_dig 1
+==
+assert
+frame_dig -1
+extract 2 0
+bytec_0 // ""
+!=
+assert
+frame_dig -1
+frame_bury 2
+frame_dig 0
+pushint 272 // 272
+getbit
+frame_bury 3
+frame_dig 0
+pushint 35 // 35
+extract_uint64
+frame_bury 4
+frame_dig 1
+frame_dig 2
+frame_bury 8
+frame_dig 8
+frame_bury 7
+intc_2 // 43
+frame_bury 5
+frame_dig 5
+itob
+extract 6 0
+concat
+bytec_2 // 0x00
+intc_0 // 0
+frame_dig 3
+setbit
+concat
+frame_dig 4
+itob
+concat
+frame_dig 7
+concat
+frame_bury 0
+retsub
+
+// delete_todo
+deletetodo_2:
+proto 1 0
+bytec_0 // ""
+dup
+frame_dig -1
+itob
+box_get
+store 8
+store 7
+load 8
+assert
+load 7
+frame_bury 0
+frame_dig 0
+extract 0 32
+frame_bury 1
+txn Sender
+frame_dig 1
+==
+assert
+frame_dig -1
+itob
+box_del
+pop
+retsub
+
+// get_task
+gettask_3:
+proto 1 1
+bytec_0 // ""
+frame_dig -1
+itob
+box_get
+store 10
+store 9
+load 10
+assert
+load 9
+frame_bury 0
+retsub

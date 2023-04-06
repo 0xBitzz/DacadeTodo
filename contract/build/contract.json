@@ -1,0 +1,62 @@
+{
+    "name": "Todo",
+    "methods": [
+        {
+            "name": "create_todo",
+            "args": [
+                {
+                    "type": "pay",
+                    "name": "_txn"
+                },
+                {
+                    "type": "string",
+                    "name": "_task_note"
+                }
+            ],
+            "returns": {
+                "type": "void"
+            }
+        },
+        {
+            "name": "update_todo",
+            "args": [
+                {
+                    "type": "uint64",
+                    "name": "_task_id"
+                },
+                {
+                    "type": "string",
+                    "name": "_new_task_note"
+                }
+            ],
+            "returns": {
+                "type": "void"
+            }
+        },
+        {
+            "name": "delete_todo",
+            "args": [
+                {
+                    "type": "uint64",
+                    "name": "_task_id"
+                }
+            ],
+            "returns": {
+                "type": "void"
+            }
+        },
+        {
+            "name": "get_task",
+            "args": [
+                {
+                    "type": "uint64",
+                    "name": "_task_id"
+                }
+            ],
+            "returns": {
+                "type": "(address,string,bool,uint64)"
+            }
+        }
+    ],
+    "networks": {}
+}
