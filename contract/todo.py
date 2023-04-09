@@ -61,11 +61,9 @@ def create_task(
         (time := abi.Uint64()).set(Global.latest_timestamp()),
 
         (task := Task()).set(owner, task_note, is_completed, time),
-        # todo_app.state.tasks[todo_app.state.task_id.get()].set(task),
         todo_app.state.tasks[Itob(todo_app.state.task_id)].set(task),
 
         todo_app.state.task_id.increment()
-        # todo_app.state.task_id.set(todo_app.state.task_id + Int(1))
     )
 
 
