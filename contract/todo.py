@@ -2,13 +2,14 @@ import os.path
 import shutil
 # from typing import Literal
 from beaker import Application, GlobalStateValue
-from beaker.consts import FALSE
+from beaker.consts import FALSE, TRUE
 from beaker.lib.storage import BoxMapping
 from pyteal import (
     Assert,
     Bytes,
     Expr,
     Global,
+    If,
     Int,
     Itob,
     Pop,
@@ -42,7 +43,7 @@ todo_app = Application("Todo", state=State())
 
 
 @todo_app.external
-def create_todo(
+def create_task(
         _txn: abi.PaymentTransaction,
         _task_note: abi.String
 ) -> Expr:
@@ -69,7 +70,7 @@ def create_todo(
 
 
 @todo_app.external
-def update_todo(
+def update_task(
         _task_id: abi.Uint64,
         _new_task_note: abi.String
 ) -> Expr:
@@ -89,13 +90,31 @@ def update_todo(
 
 
 @todo_app.external
-def delete_todo(_task_id: abi.Uint64) -> Expr:
+def update_completed_status(_task_id: abi.Uint64):
+    return Seq(
+        (task := Task()).decode(todo_app.state.tasks[_task_id].get()),
+        (owner := abi.Address()).set(task.owner),
+        Assert(
+            Txn.sender() == owner.get()
+        ),
+        (is_completed := abi.Bool()).set(task.is_completed),
+        If(is_completed.get() == Int(0))
+        .Then(is_completed.set(TRUE))
+        .Else(is_completed.set(FALSE)),
+        (task_note := abi.String()).set(task.task_note),
+        (time := abi.Uint64()).set(task.time),
+
+        task.set(owner, task_note, is_completed, time)
+    )
+
+
+@todo_app.external
+def delete_task(_task_id: abi.Uint64) -> Expr:
     return Seq(
         (task := Task()).decode(todo_app.state.tasks[_task_id].get()),
         (owner := abi.Address()).set(task.owner),
         Assert(Txn.sender() == owner.get()),
-        Pop(todo_app.state.tasks[_task_id].delete()),
-        # todo_app.state.task_id.decrement()
+        Pop(todo_app.state.tasks[_task_id].delete())
     )
 
 
@@ -105,8 +124,8 @@ def get_task(_task_id: abi.Uint64, *, output: Task) -> Expr:
 
 
 if __name__ == "__main__":
-    build_path = "build"
-    if os.path.exists(build_path):
-        shutil.rmtree(build_path)
+    artifacts = "artifacts"
+    if os.path.exists(artifacts):
+        shutil.rmtree(artifacts)
     todo_app_spec = todo_app.build()
-    todo_app_spec.export(build_path)
+    todo_app_spec.export(artifacts)
